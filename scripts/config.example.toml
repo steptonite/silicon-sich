@@ -37,11 +37,20 @@ skills_dir = "~/.claude/skills"
 db_path = "~/SecondBrain/.index/index.db"
 
 [embed]
-# Локальний Ollama — основний рушій ($0, приватно). bge-m3 = 1024-вимірні вектори.
+# ДВА рівноцінні варіанти embed-рушія (модель bge-m3 однакова → вектори сумісні,
+# можна перемикатись будь-коли без переіндексації). Деталі: docs/04-semantics.md.
+#
+# Варіант A — OpenRouter (НАЙПРОСТІШИЙ старт): нічого не встановлюєш локально.
+#   Постав openrouter_enabled = true і поклади ключ у env OPENROUTER_API_KEY
+#   або у файл env_file (рядок OPENROUTER_API_KEY=...). Ціна копійчана (~$0.01/M ток.).
+#
+# Варіант B — локальний Ollama ($0, приватно: чати не покидають машину).
+#   Постав https://ollama.com і модель bge-m3 (≈1.1 ГБ). На macOS керувати
+#   Ollama-моделями зручно через GUI: https://github.com/steptonite/KobzarAI
+#
+# Логіка auto: якщо Ollama живий — він; якщо ні і openrouter_enabled=true — OpenRouter.
 ollama_url = "http://localhost:11434"
 ollama_model = "bge-m3"
-# Фолбек через OpenRouter (та сама модель → вектори сумісні). Вимкнено за
-# замовчуванням: увімкни і поклади ключ у env OPENROUTER_API_KEY або в env_file.
 openrouter_enabled = false
 openrouter_model = "baai/bge-m3"
 env_file = "~/.config/second-brain/.env"

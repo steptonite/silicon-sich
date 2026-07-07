@@ -16,9 +16,11 @@ Obsidian — окремо, лише ВІЗУАЛІЗАТОР графа для �
   transcript  — транскрипти сесій Claude Code (*.jsonl)
   skills      — SKILL.md локальних скілів («який скіл під задачу»)
 
-EMBED-РУШІЙ: bge-m3 (1024-вим), дефолт --backend auto: ЛОКАЛЬНИЙ Ollama першим
-  ($0, приватно; M-серія Mac 8ГБ тягне), OpenRouter — лише фолбек, і лише якщо
-  openrouter_enabled=true у config.toml (ключ: env OPENROUTER_API_KEY або env_file).
+EMBED-РУШІЙ: bge-m3 (1024-вим), два РІВНОЦІННІ варіанти (див. docs/04-semantics.md):
+  A) OpenRouter — без локальних установок: openrouter_enabled=true у config.toml
+     + ключ (env OPENROUTER_API_KEY або env_file). Ціна копійчана.
+  B) локальний Ollama — $0, приватно; M-серія Mac 8ГБ тягне.
+  Дефолт --backend auto: Ollama якщо живий, інакше OpenRouter (якщо ввімкнено).
   Та сама модель обидва боки → вектори сумісні, переіндексація не потрібна.
 
 ЮЗАННЯ (через venv-python):
@@ -173,8 +175,9 @@ def embed(texts: list[str], backend: str) -> list[list[float]]:
             except Exception as e:
                 print(f"  [warn] ollama впав ({e})", file=sys.stderr)
         if not OR_ENABLED:
-            sys.exit("ERROR: Ollama недоступний, а фолбек OpenRouter вимкнено "
-                     "(embed.openrouter_enabled=false у config.toml). Підніми Ollama: `ollama serve`.")
+            sys.exit("ERROR: Ollama недоступний, а OpenRouter вимкнено "
+                     "(embed.openrouter_enabled=false у config.toml). Два виходи: "
+                     "підняти Ollama (`ollama serve`) АБО ввімкнути openrouter_enabled=true + ключ.")
         print("  [warn] фолбек на OpenRouter", file=sys.stderr)
         return embed_openrouter(texts)
     return embed_openrouter(texts)

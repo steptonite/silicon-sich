@@ -33,12 +33,18 @@ fi
 .venv/bin/pip install --quiet --upgrade pip sqlite-vec
 echo "✅ deps: sqlite-vec ($(.venv/bin/pip show sqlite-vec | grep Version))"
 
-# 3. Ollama + bge-m3
+# 3. Embed-рушій (ОПЦІЙНИЙ вибір, див. docs/04-semantics.md):
+#    A) OpenRouter — нічого не ставити локально (openrouter_enabled=true + ключ у config)
+#    B) локальний Ollama + bge-m3 — $0, приватно
 if ! command -v ollama >/dev/null 2>&1; then
-  echo "🙋 Ollama не встановлено. Людина: постав з https://ollama.com і запусти застосунок."
-  echo "   Потім: ollama pull bge-m3   (≈1.1 ГБ, разово). І перезапусти setup.sh."
+  echo "ℹ️ Ollama не знайдено — це ОК, якщо обираєш варіант A (OpenRouter):"
+  echo "   у config.toml → [embed] openrouter_enabled = true + ключ OPENROUTER_API_KEY."
+  echo "🙋 Якщо хочеш варіант B (локально, \$0, приватно): постав https://ollama.com,"
+  echo "   потім 'ollama pull bge-m3' (≈1.1 ГБ) і перезапусти setup.sh."
+  echo "   На macOS керувати Ollama-моделями зручно через GUI: https://github.com/steptonite/KobzarAI"
 elif ! curl -s --max-time 3 http://localhost:11434/api/tags >/dev/null; then
   echo "🙋 Ollama встановлено, але сервер не відповідає. Запусти застосунок Ollama (або 'ollama serve')."
+  echo "   Або обери варіант A (OpenRouter) у config.toml — тоді Ollama не потрібна."
 else
   if curl -s http://localhost:11434/api/tags | grep -q "bge-m3"; then
     echo "✅ Ollama живий, bge-m3 на місці"

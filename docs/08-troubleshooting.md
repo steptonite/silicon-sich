@@ -2,15 +2,20 @@
 
 ## Ollama / embed
 
-- **`search` падає «Ollama недоступний»** → 🙋 запустити застосунок Ollama (або
-  `ollama serve`). Перевірка: `curl -s localhost:11434/api/tags`.
+- **`search` падає «Ollama недоступний»** → два виходи: 🙋 запустити застосунок
+  Ollama (або `ollama serve`; перевірка: `curl -s localhost:11434/api/tags`) АБО
+  перейти на варіант A (OpenRouter): `openrouter_enabled=true` у config.toml + ключ —
+  тоді Ollama взагалі не потрібна (див. docs/04).
+- **«Складно з Ollama» на macOS** → GUI-панель
+  [KobzarAI](https://github.com/steptonite/KobzarAI) керує Ollama-моделями без термінала.
 - **Нема моделі bge-m3** → `ollama pull bge-m3` (≈1.1 ГБ разово). Модель має бути
   ТА САМА для індексації і пошуку — інші embedding-моделі несумісні по векторах
   (доведеться повний реіндекс).
 - **Повільно на слабкому Mac** → нормально: пошук ~0.5–6 с; перший індекс великого
   архіву — хвилини-години. Індексуй по одному source, не all.
-- **Хочеться хмарний фолбек** → `openrouter_enabled=true` у config.toml + ключ у
-  env `OPENROUTER_API_KEY` або env_file. Та сама модель `baai/bge-m3` → без реіндексу.
+- **Перемикання Ollama ↔ OpenRouter** → просто зміни `openrouter_enabled` у
+  config.toml (ключ: env `OPENROUTER_API_KEY` або env_file). Та сама модель
+  `baai/bge-m3` обидва боки → реіндекс не потрібен.
 
 ## Конвертери
 

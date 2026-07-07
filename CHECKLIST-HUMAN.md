@@ -4,8 +4,11 @@
 
 ## Разово, на старті
 
-- [ ] Установити **Ollama** (ollama.com) і запустити застосунок.
 - [ ] Установити **Obsidian** (obsidian.md).
+- [ ] Обрати рушій семантики (модель підкаже, обидва ок):
+  - **A** — дати API-ключ OpenRouter (openrouter.ai, ціна копійчана) — нічого не встановлюєш; АБО
+  - **B** — установити **Ollama** (ollama.com) і запустити застосунок ($0, все локально).
+    На macOS моделями Ollama зручно керувати через GUI [KobzarAI](https://github.com/steptonite/KobzarAI).
 - [ ] Замовити експорти (прийдуть на email, від хвилин до доби):
   - [ ] ChatGPT: Settings → Data controls → Export data
   - [ ] Gemini: takeout.google.com → My Activity (Gemini Apps) + NotebookLM
