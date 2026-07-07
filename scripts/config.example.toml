@@ -1,0 +1,47 @@
+# ══════════════════════════════════════════════════════════════════
+# Second Brain Kit — конфіг. ЄДИНЕ місце, де живуть шляхи.
+# Скопіюй у config.toml поруч (scripts/config.toml) і відредагуй.
+# Всі шляхи можна писати з ~ — вони розгортаються автоматично.
+# ══════════════════════════════════════════════════════════════════
+
+[user]
+# Як підписувати людину в конвертованих чатах (заголовки ## 🧑 …)
+name = "Користувач"
+
+[vault]
+# Корінь Obsidian master-vault (сюди symlink-аються всі бази)
+root = "~/SecondBrain"
+# Тека memory-графа (ядро: одна нота = один факт). Для Claude Code це
+# ~/.claude/projects/-/memory — тоді харнес сам підвантажує MEMORY.md.
+memory = "~/.claude/projects/-/memory"
+# Тека сирих надиктовок людини (raw → processed)
+inbox = "~/SecondBrain/inbox"
+
+[archives]
+# Куди складати конвертовані MD-архіви чатів (по одному кореню на джерело).
+# Кожен архів потім symlink-ається у vault.root.
+chatgpt = "~/code/chatgpt-archive"
+gemini = "~/code/gemini-archive"
+claude = "~/code/claude-archive"
+# Курований шар знань (тематичні самарі поверх сирих чатів)
+knowledge = "~/code/chatgpt-archive/knowledge"
+
+[claude_code]
+# Транскрипти сесій Claude Code (.jsonl) — індексуються як source=transcript
+projects_dir = "~/.claude/projects"
+# Локальні скіли (SKILL.md) — семантичний пошук «який скіл під задачу»
+skills_dir = "~/.claude/skills"
+
+[index]
+# Векторний індекс sqlite-vec (створюється сам)
+db_path = "~/SecondBrain/.index/index.db"
+
+[embed]
+# Локальний Ollama — основний рушій ($0, приватно). bge-m3 = 1024-вимірні вектори.
+ollama_url = "http://localhost:11434"
+ollama_model = "bge-m3"
+# Фолбек через OpenRouter (та сама модель → вектори сумісні). Вимкнено за
+# замовчуванням: увімкни і поклади ключ у env OPENROUTER_API_KEY або в env_file.
+openrouter_enabled = false
+openrouter_model = "baai/bge-m3"
+env_file = "~/.config/second-brain/.env"

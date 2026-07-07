@@ -1,0 +1,50 @@
+{
+  "_comment": "Блок hooks для ~/.claude/settings.json. Заміни <KIT> на абсолютний шлях до second-brain-kit (напр. /Users/name/code/second-brain-kit). Якщо в settings.json уже є hooks — злий блоки, не затирай чужі.",
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash <KIT>/scripts/hooks/session_start.sh",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash <KIT>/scripts/hooks/pre_compact.sh",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 <KIT>/scripts/hooks/semantic_recall.py",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 <KIT>/scripts/hooks/memory_lint.py",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}

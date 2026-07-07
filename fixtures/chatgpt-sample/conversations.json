@@ -1,0 +1,81 @@
+[
+  {
+    "title": "План городу на балконі",
+    "create_time": 1717000000,
+    "update_time": 1717000600,
+    "conversation_id": "conv-aaaa1111",
+    "default_model_slug": "gpt-4o",
+    "is_starred": true,
+    "is_archived": false,
+    "current_node": "n3",
+    "mapping": {
+      "n0": {"id": "n0", "parent": null, "children": ["n1"], "message": null},
+      "n1": {
+        "id": "n1", "parent": "n0", "children": ["n2"],
+        "message": {
+          "author": {"role": "user"},
+          "content": {"content_type": "text", "parts": ["Хочу вирощувати базилік і помідори черрі на балконі. З чого почати?"]},
+          "metadata": {}
+        }
+      },
+      "n2": {
+        "id": "n2", "parent": "n1", "children": ["n3"],
+        "message": {
+          "author": {"role": "assistant"},
+          "content": {"content_type": "thoughts", "thoughts": [{"summary": "оцінка освітлення", "content": "Балкон південний чи північний — ключове питання для вибору культур."}]},
+          "metadata": {}
+        }
+      },
+      "n3": {
+        "id": "n3", "parent": "n2", "children": [],
+        "message": {
+          "author": {"role": "assistant"},
+          "content": {"content_type": "text", "parts": ["Почни з базиліка: горщик 2–3 л, південне вікно, полив через день. Помідори черрі потребують 10-літрового горщика і опори."]},
+          "metadata": {}
+        }
+      }
+    }
+  },
+  {
+    "title": "Рецепт хліба на заквасці",
+    "create_time": 1717100000,
+    "update_time": 1717100500,
+    "conversation_id": "conv-bbbb2222",
+    "default_model_slug": "gpt-4o",
+    "is_starred": false,
+    "is_archived": false,
+    "current_node": "m2",
+    "mapping": {
+      "m0": {"id": "m0", "parent": null, "children": ["m1"], "message": null},
+      "m1": {
+        "id": "m1", "parent": "m0", "children": ["m2"],
+        "message": {
+          "author": {"role": "user"},
+          "content": {"content_type": "text", "parts": ["Дай простий рецепт житнього хліба на заквасці для новачка."]},
+          "metadata": {}
+        }
+      },
+      "m2": {
+        "id": "m2", "parent": "m1", "children": [],
+        "message": {
+          "author": {"role": "assistant"},
+          "content": {"content_type": "text", "parts": ["400 г житнього борошна, 300 мл води, 100 г активної закваски, 8 г солі. Автоліз 30 хв, ферментація 4–6 год, випікання 45 хв на 230°C."]},
+          "metadata": {}
+        }
+      }
+    }
+  },
+  {
+    "title": "Порожня розмова",
+    "create_time": 1717200000,
+    "update_time": 1717200000,
+    "conversation_id": "conv-cccc3333",
+    "default_model_slug": "gpt-4o",
+    "is_starred": false,
+    "is_archived": false,
+    "current_node": "z0",
+    "mapping": {
+      "z0": {"id": "z0", "parent": null, "children": [], "message": null}
+    }
+  }
+]

@@ -1,0 +1,8 @@
+scripts/config.toml
+.venv/
+*.db
+*.db-shm
+*.db-wal
+__pycache__/
+.DS_Store
+.env
