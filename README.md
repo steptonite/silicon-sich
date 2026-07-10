@@ -37,6 +37,7 @@ docs/                  ← глибина по кожному етапу
   00-philosophy        02-convert          05-hooks           07-model-discipline
   01-export            03-vault            06-distillation    08-troubleshooting
                        04-semantics        09-teaching (як навчати людину системі)
+                                           10-portability (Codex та інші агенти)
 scripts/               ← робочі інструменти (конфіг шляхів: config.example.toml)
   setup.sh · convert_chatgpt.py · convert_gemini.py · convert_claude.py
   librarian.py (семантичний індекс) · sanitize.py (аудит графа) · hooks/
