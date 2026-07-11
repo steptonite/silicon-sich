@@ -13,6 +13,9 @@ Obsidian — окремо, лише ВІЗУАЛІЗАТОР графа для �
   gemini      — Gemini/Takeout архів
   claude      — Claude-хмара експорт
   inbox       — сирі надиктовки користувача
+  tasks       — підтверджені дії (active + archive)
+  claude-code — сирі локальні сесії Claude Code
+  codex       — сирі локальні сесії Codex
   transcript  — транскрипти сесій Claude Code (*.jsonl)
   skills      — SKILL.md локальних скілів («який скіл під задачу»)
 
@@ -42,10 +45,13 @@ ENV_FILE = P(CFG["embed"].get("env_file", "~/.config/second-brain/.env"))
 
 MEMORY_DIR = P(CFG["vault"]["memory"])
 INBOX_DIR = P(CFG["vault"]["inbox"])
+TASKS_DIR = P(CFG["vault"].get("tasks", "~/SecondBrain/tasks"))
 CHATGPT_DIR = P(CFG["archives"]["chatgpt"]) / "chats"
 KNOWLEDGE_DIR = P(CFG["archives"]["knowledge"])
 GEMINI_DIR = P(CFG["archives"]["gemini"])
 CLAUDE_DIR = P(CFG["archives"]["claude"])
+CLAUDE_CODE_DIR = P(CFG["archives"].get("claude_code", "~/code/claude-code-archive"))
+CODEX_DIR = P(CFG["archives"].get("codex", "~/code/codex-archive"))
 PROJECTS_DIR = P(CFG["claude_code"]["projects_dir"])
 SKILLS_DIR = P(CFG["claude_code"]["skills_dir"])
 
@@ -66,14 +72,17 @@ _usage_tokens = 0  # сумарні токени embed за прогін (для
 # щоб спливати ПЕРШИМ над дослівними сирими чатами. Множник <1 = ближче = вище.
 # Без цього десятки тисяч сирих чанків завжди перекрикують жменю knowledge-чанків —
 # ланцюг знань був би декларацією, а не поведінкою.
-SOURCE_WEIGHT = {"knowledge": 0.82, "memory": 0.85,
+SOURCE_WEIGHT = {"knowledge": 0.82, "memory": 0.85, "tasks": 0.92,
                  "chatgpt": 1.0, "gemini": 1.0, "claude": 1.0, "transcript": 1.05,
-                 "inbox": 1.0}
+                 "inbox": 1.0, "claude-code": 1.0, "codex": 1.0}
 # Сирі, неверифіковані шари — виводимо з банером недовіри (у самарі є ⚠️, у сирому нема).
 UNVERIFIED_SRC = {"chatgpt": "⚠️ сирий чат ChatGPT — НЕ верифіковано (модель могла помилятись)",
                   "gemini": "⚠️ сира розмова з Gemini — НЕ верифіковано (модель могла помилятись)",
                   "claude": "⚠️ сирий чат Claude — не курований (сире ≠ канон)",
                   "inbox": "⚠️ сира надиктовка користувача з inbox — ще не розфасована",
+                  "tasks": "📋 локальна task-система — стан дії дивись у frontmatter",
+                  "claude-code": "⚠️ сира Claude Code-сесія — не курована",
+                  "codex": "⚠️ сира Codex-сесія — не курована",
                   "transcript": "⚠️ сирий транскрипт — не куроване знання"}
 # NotebookLM-зошити всередині gemini-архіву — куровані (модель сама зводить джерела),
 # золото як knowledge, тому окрема вага і БЕЗ банера недовіри. Розрізняємо по підшляху ref.
@@ -365,6 +374,30 @@ def gather_inbox() -> list[tuple[str, str]]:
     return out
 
 
+def gather_md_tree(root: Path) -> list[tuple[str, str]]:
+    out = []
+    if root.exists():
+        for fp in sorted(root.rglob("*.md")):
+            try:
+                out.append((str(fp), fp.read_text(encoding="utf-8")))
+            except Exception:
+                pass
+    return out
+
+
+def gather_tasks() -> list[tuple[str, str]]:
+    """Підтверджені дії: active і незмінний архів історії."""
+    return gather_md_tree(TASKS_DIR)
+
+
+def gather_claude_code() -> list[tuple[str, str]]:
+    return gather_md_tree(CLAUDE_CODE_DIR / "md")
+
+
+def gather_codex() -> list[tuple[str, str]]:
+    return gather_md_tree(CODEX_DIR / "md")
+
+
 def gather_skills() -> list[tuple[str, str]]:
     """Скіли (skills_dir/*/SKILL.md): семантичний пошук «який скіл під цю задачу?».
     Індексуємо лише шапку (frontmatter+перші ~2500 симв) — тригер-опис, не все тіло."""
@@ -380,7 +413,9 @@ def gather_skills() -> list[tuple[str, str]]:
 
 GATHER = {"memory": gather_memory, "transcript": gather_transcripts,
           "chatgpt": gather_chatgpt, "knowledge": gather_knowledge, "gemini": gather_gemini,
-          "claude": gather_claude, "inbox": gather_inbox, "skills": gather_skills}
+          "claude": gather_claude, "inbox": gather_inbox, "tasks": gather_tasks,
+          "claude-code": gather_claude_code, "codex": gather_codex,
+          "skills": gather_skills}
 
 
 # ─────────────────────────── index ───────────────────────────
@@ -510,13 +545,13 @@ if __name__ == "__main__":
     sub = ap.add_subparsers(dest="cmd", required=True)
     pi = sub.add_parser("index")
     pi.add_argument("--source", required=True,
-                    choices=["memory", "transcripts", "chatgpt", "knowledge", "gemini", "claude", "inbox", "skills", "all"])
+                    choices=["memory", "transcripts", "chatgpt", "knowledge", "gemini", "claude", "inbox", "tasks", "claude-code", "codex", "skills", "all"])
     pi.add_argument("--backend", default="auto", choices=["openrouter", "ollama", "auto"])
     pi.add_argument("--limit", type=int, default=None, help="обмежити к-сть файлів (для тесту)")
     ps = sub.add_parser("search")
     ps.add_argument("query")
     ps.add_argument("--source", default=None,
-                    choices=["memory", "transcript", "chatgpt", "knowledge", "gemini", "claude", "inbox", "skills"])
+                    choices=["memory", "transcript", "chatgpt", "knowledge", "gemini", "claude", "inbox", "tasks", "claude-code", "codex", "skills"])
     ps.add_argument("-k", type=int, default=8)
     ps.add_argument("--backend", default="auto", choices=["openrouter", "ollama", "auto"])
     ps.add_argument("--b64", action="store_true", help="query передано у base64 (shell-safe)")

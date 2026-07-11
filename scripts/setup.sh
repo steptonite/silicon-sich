@@ -10,7 +10,7 @@
 #   3. Перевіряє Ollama і модель bge-m3 (🙋 якщо нема — каже, що зробити руками).
 #   4. Якщо нема config.toml — копіює з config.example.toml і зупиняється
 #      (🙋 людина/модель редагує шляхи), інакше:
-#   5. Створює теки з конфіга (vault, memory, inbox, archives, index) і
+#   5. Створює теки з конфіга (vault, memory, inbox, tasks, archives, index) і
 #      symlinks архівів + memory у vault-корінь (Obsidian бачить один граф).
 set -e
 KIT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -76,8 +76,9 @@ from sb_config import CFG, P
 root = P(CFG["vault"]["root"])
 memory = P(CFG["vault"]["memory"])
 inbox = P(CFG["vault"]["inbox"])
+tasks = P(CFG["vault"].get("tasks", "~/SecondBrain/tasks"))
 db = P(CFG["index"]["db_path"])
-for d in (root, memory, inbox, db.parent):
+for d in (root, memory, inbox, tasks / "active", tasks / "archive", db.parent):
     d.mkdir(parents=True, exist_ok=True)
     print(f"✅ тека: {d}")
 
@@ -92,11 +93,15 @@ def link(target: Path, name: str):
 # memory та архіви — symlink у vault-корінь, файли фізично лишаються на місцях
 if memory.resolve() != (root / "memory").resolve():
     link(memory, "memory")
-for key in ("chatgpt", "gemini", "claude"):
+for key in ("chatgpt", "gemini", "claude", "claude_code", "codex"):
+    if key not in CFG["archives"]:
+        continue
     arch = P(CFG["archives"][key])
     arch.mkdir(parents=True, exist_ok=True)
     if arch.resolve().parent != root.resolve():
         link(arch, f"{key}-archive")
+if tasks.resolve().parent != root.resolve():
+    link(tasks, "tasks")
 PY
 
 echo "── Готово. Далі за PLAYBOOK.md: конверсія експортів → індексація → хуки. ──"

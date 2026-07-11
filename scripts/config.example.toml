@@ -16,6 +16,8 @@ root = "~/SecondBrain"
 memory = "~/.claude/projects/-/memory"
 # Тека сирих надиктовок людини (raw → processed)
 inbox = "~/SecondBrain/inbox"
+# Підтверджені дії: active/ + archive/YYYY-MM/. Це НЕ inbox і НЕ knowledge.
+tasks = "~/SecondBrain/tasks"
 
 [archives]
 # Куди складати конвертовані MD-архіви чатів (по одному кореню на джерело).
@@ -25,6 +27,16 @@ gemini = "~/code/gemini-archive"
 claude = "~/code/claude-archive"
 # Курований шар знань (тематичні самарі поверх сирих чатів)
 knowledge = "~/code/chatgpt-archive/knowledge"
+claude_code = "~/code/claude-code-archive"
+codex = "~/code/codex-archive"
+
+[live_sources]
+# Сирі JSONL-джерела локальних агентів. Залиш порожнім, якщо агента нема.
+claude_code_sessions = "~/.claude/projects"
+codex_sessions = "~/.codex/sessions"
+
+[maintenance]
+log_path = "~/SecondBrain/log.md"
 
 [claude_code]
 # Транскрипти сесій Claude Code (.jsonl) — індексуються як source=transcript

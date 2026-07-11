@@ -17,6 +17,9 @@
 - 🤖 Клод із дисципліною пам'яті: авто-пригадування на кожне повідомлення (хук),
   лінт нотаток у момент запису (хук), міст між сесіями (bridge.md)
 - 📉 Економію токенів: у контекст їдуть 3 сніпети, а не тонни історії
+- ✅ Локальні Markdown-задачі: `tasks/active` → незмінний `archive/YYYY-MM`
+- 🔄 Ручний інкрементальний refresh локальних Claude Code/Codex сесій
+- 🧪 Перевірку курованих нот на дати, провенанс і чесне маркування невпевненості
 
 Метафора: сирі чати — **склад** → дистиляція — **каталог** → семантика —
 **бібліотекар, що розуміє питання** → граф — **стежки між полицями**.
@@ -38,12 +41,23 @@ docs/                  ← глибина по кожному етапу
   01-export            03-vault            06-distillation    08-troubleshooting
                        04-semantics        09-teaching (як навчати людину системі)
                                            10-portability (Codex та інші агенти)
+  11-tasks · 12-live-refresh · 13-library-maintenance
 scripts/               ← робочі інструменти (конфіг шляхів: config.example.toml)
   setup.sh · convert_chatgpt.py · convert_gemini.py · convert_claude.py
-  librarian.py (семантичний індекс) · sanitize.py (аудит графа) · hooks/
+  librarian.py · task.py · brain_refresh.py · archive_sessions.py
+  distill_delta.py · sanitize.py · hooks/
 templates/             ← CLAUDE.md, канон vault, шаблони нот/хабів/bridge
 fixtures/              ← синтетичні міні-експорти для перевірки скриптів
 ```
+
+## Три різні шари
+
+- `inbox/` — сирі думки й надиктовки, які ще треба класифікувати.
+- `tasks/` — підтверджені дії зі станом, строком і completion condition.
+- `memory/` та `knowledge/` — довготривалі факти, рішення й куровані висновки.
+
+Не перетворюйте кожну ідею на задачу, а завершену задачу — автоматично на знання.
+Деталі: [docs/11-tasks.md](docs/11-tasks.md).
 
 ## Вимоги
 
