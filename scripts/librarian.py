@@ -65,6 +65,7 @@ OLLAMA_MODEL = CFG["embed"].get("ollama_model", "bge-m3")
 BATCH = 48
 TIMEOUT = 180
 PRICE_PER_MTOK = 0.01  # bge-m3 на OpenRouter
+_read_only_connections: set[int] = set()
 
 _usage_tokens = 0  # сумарні токени embed за прогін (для звіту вартості)
 
@@ -193,12 +194,38 @@ def embed(texts: list[str], backend: str) -> list[list[float]]:
 
 
 # ─────────────────────────── db ───────────────────────────
-def connect() -> sqlite3.Connection:
-    DB_PATH.parent.mkdir(parents=True, exist_ok=True)
-    c = sqlite3.connect(DB_PATH)
+def _load_vec(c: sqlite3.Connection) -> None:
     c.enable_load_extension(True)
     sqlite_vec.load(c)
     c.enable_load_extension(False)
+
+
+def connect(*, read_only: bool = False) -> sqlite3.Connection:
+    """Відкрити індекс без запису для search/stats або з записом для index.
+
+    Codex sandbox часто монтує каталог індексу read-only. Звичайний SQLite
+    connection на WAL-базу тоді намагається створити sidecar-файли навіть для
+    SELECT. Read-only режим не виконує DDL/WAL і має immutable fallback.
+    """
+    if read_only:
+        uri = DB_PATH.resolve().as_uri()
+        try:
+            c = sqlite3.connect(f"{uri}?mode=ro", uri=True)
+            c.execute("SELECT 1 FROM chunks LIMIT 1").fetchone()
+        except sqlite3.OperationalError:
+            try:
+                c.close()
+            except UnboundLocalError:
+                pass
+            c = sqlite3.connect(f"{uri}?mode=ro&immutable=1", uri=True)
+        _load_vec(c)
+        c.execute("PRAGMA busy_timeout=5000")
+        _read_only_connections.add(id(c))
+        return c
+
+    DB_PATH.parent.mkdir(parents=True, exist_ok=True)
+    c = sqlite3.connect(DB_PATH)
+    _load_vec(c)
     # кілька писців (PreCompact-хук, ручні виклики) → WAL,
     # інакше рано чи пізно "database is locked"
     c.execute("PRAGMA journal_mode=WAL")
@@ -485,8 +512,54 @@ def cmd_index(sources: list[str], backend: str, limit: int | None):
 
 
 # ─────────────────────────── search ───────────────────────────
+def _readonly_vector_search(c: sqlite3.Connection, qv: list[float],
+                            fetch: int) -> list[tuple[int, float]]:
+    """Точний L2-пошук по vec0 shadow tables без writable virtual cursor."""
+    import numpy as np
+
+    query = np.asarray(qv, dtype=np.float32)
+    if query.shape != (DIM,):
+        raise ValueError(f"expected query vector with {DIM} dimensions")
+    ids_parts, distance_parts = [], []
+    rows = c.execute(
+        "SELECT c.size, c.validity, c.rowids, v.vectors "
+        "FROM vchunks_chunks c "
+        "JOIN vchunks_vector_chunks00 v ON v.rowid=c.chunk_id"
+    )
+    for size, validity, rowids, vectors in rows:
+        ids = np.frombuffer(rowids, dtype="<i8", count=size)
+        valid = np.unpackbits(
+            np.frombuffer(validity, dtype=np.uint8), bitorder="little"
+        )[:size].astype(bool)
+        matrix = np.frombuffer(vectors, dtype="<f4", count=size * DIM).reshape(size, DIM)
+        active = matrix[valid]
+        if not active.size:
+            continue
+        ids_parts.append(ids[valid])
+        distance_parts.append(np.linalg.norm(active - query, axis=1))
+    if not ids_parts:
+        return []
+    ids = np.concatenate(ids_parts)
+    distances = np.concatenate(distance_parts)
+    take = min(fetch, len(ids))
+    nearest = np.argpartition(distances, take - 1)[:take]
+    nearest = nearest[np.argsort(distances[nearest], kind="stable")]
+    return [(int(ids[i]), float(distances[i])) for i in nearest]
+
+
+def vector_search(c: sqlite3.Connection, qv: list[float],
+                  fetch: int) -> list[tuple[int, float]]:
+    if id(c) in _read_only_connections:
+        return _readonly_vector_search(c, qv, fetch)
+    return c.execute(
+        "SELECT v.rowid, v.distance FROM vchunks v "
+        "WHERE v.embedding MATCH ? AND k=? ORDER BY v.distance",
+        (sqlite_vec.serialize_float32(qv), fetch),
+    ).fetchall()
+
+
 def cmd_search(query: str, source: str | None, k: int, backend: str):
-    c = connect()
+    c = connect(read_only=True)
     if resolve_engine(backend) == "openrouter":
         print(f"[OpenRouter] звертаюсь до ключа: embeddings {OR_MODEL} (пошук-запит)", file=sys.stderr)
     else:
@@ -496,9 +569,7 @@ def cmd_search(query: str, source: str | None, k: int, backend: str):
     # інакше не спливає; (б) навіть без фільтра курований шар треба перевзважити (див.
     # SOURCE_WEIGHT) — у сирий топ-k він міг не потрапити взагалі.
     fetch = 2000 if source else max(k * 40, 400)
-    rows = c.execute(
-        "SELECT v.rowid, v.distance FROM vchunks v WHERE v.embedding MATCH ? AND k=? ORDER BY v.distance",
-        (sqlite_vec.serialize_float32(qv), fetch)).fetchall()
+    rows = vector_search(c, qv, fetch)
     cand = []
     for rid, dist in rows:
         meta = c.execute("SELECT source, ref, chunk_idx, text FROM chunks WHERE id=?", (rid,)).fetchone()
@@ -528,7 +599,7 @@ def cmd_search(query: str, source: str | None, k: int, backend: str):
 
 
 def cmd_stats():
-    c = connect()
+    c = connect(read_only=True)
     print("Індекс:", DB_PATH)
     for src, n in c.execute("SELECT source, COUNT(*) FROM chunks GROUP BY source").fetchall():
         print(f"  {src:11s} {n:>7} чанків")

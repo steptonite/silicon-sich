@@ -6,7 +6,7 @@
 #
 # Що робить:
 #   1. Перевіряє python3 ≥ 3.11 (потрібен tomllib).
-#   2. Створює venv у корені кита + ставить sqlite-vec.
+#   2. Створює venv у корені кита + ставить sqlite-vec і numpy.
 #   3. Перевіряє Ollama і модель bge-m3 (🙋 якщо нема — каже, що зробити руками).
 #   4. Якщо нема config.toml — копіює з config.example.toml і зупиняється
 #      (🙋 людина/модель редагує шляхи), інакше:
@@ -30,8 +30,8 @@ if [ ! -d .venv ]; then
   python3 -m venv .venv
   echo "✅ створено .venv"
 fi
-.venv/bin/pip install --quiet --upgrade pip sqlite-vec
-echo "✅ deps: sqlite-vec ($(.venv/bin/pip show sqlite-vec | grep Version))"
+.venv/bin/pip install --quiet --upgrade pip sqlite-vec numpy
+echo "✅ deps: sqlite-vec ($(.venv/bin/pip show sqlite-vec | grep Version)); numpy"
 
 # 3. Embed-рушій (ОПЦІЙНИЙ вибір, див. docs/04-semantics.md):
 #    A) OpenRouter — нічого не ставити локально (openrouter_enabled=true + ключ у config)
