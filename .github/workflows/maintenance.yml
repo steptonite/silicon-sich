@@ -29,6 +29,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: brew install python@3.13
-      - run: $(brew --prefix python@3.13)/bin/python3.13 -m pip install "sqlite-vec>=0.1.9,<0.2" "numpy>=2,<3"
-      - run: $(brew --prefix python@3.13)/bin/python3.13 -m unittest -v tests/test_v1_maintenance.py
-      - run: $(brew --prefix python@3.13)/bin/python3.13 scripts/release_audit.py
+      - run: $(brew --prefix python@3.13)/bin/python3.13 -m venv .ci-venv
+      - run: .ci-venv/bin/python -m pip install "sqlite-vec>=0.1.9,<0.2" "numpy>=2,<3"
+      - run: .ci-venv/bin/python -m unittest -v tests/test_v1_maintenance.py
+      - run: .ci-venv/bin/python scripts/release_audit.py
