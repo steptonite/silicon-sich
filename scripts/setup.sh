@@ -32,6 +32,17 @@ if [ ! -d .venv ]; then
 fi
 .venv/bin/pip install --quiet --upgrade pip sqlite-vec numpy
 echo "✅ deps: sqlite-vec ($(.venv/bin/pip show sqlite-vec | grep Version)); numpy"
+.venv/bin/python - <<'PY'
+import sqlite3
+
+c = sqlite3.connect(":memory:")
+if not hasattr(c, "enable_load_extension"):
+    raise SystemExit(
+        "❌ Ця збірка Python вимикає SQLite extensions, потрібні sqlite-vec. "
+        "На macOS встанови актуальний Python через python.org або Homebrew "
+        "(рекомендовано 3.13+) і створи .venv заново."
+    )
+PY
 
 # 3. Embed-рушій (ОПЦІЙНИЙ вибір, див. docs/04-semantics.md):
 #    A) OpenRouter — нічого не ставити локально (openrouter_enabled=true + ключ у config)

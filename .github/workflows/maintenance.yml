@@ -11,8 +11,16 @@ jobs:
   test:
     strategy:
       matrix:
-        os: [macos-latest, ubuntu-latest]
-        python: ["3.11", "3.13"]
+        include:
+          - os: ubuntu-latest
+            python: "3.11"
+          - os: ubuntu-latest
+            python: "3.13"
+          # Apple's system-compatible CPython 3.11 build disables loadable
+          # SQLite extensions. sqlite-vec requires the python.org/Homebrew
+          # build represented by current 3.13 on the macOS runner.
+          - os: macos-latest
+            python: "3.13"
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4

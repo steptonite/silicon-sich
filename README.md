@@ -68,6 +68,8 @@ fixtures/              ← синтетичні міні-експорти для
 ## Вимоги
 
 macOS або Linux · Python ≥ 3.11 · [Obsidian](https://obsidian.md) · Claude Code.
+На macOS потрібна збірка Python із підтримкою SQLite extensions
+(python.org/Homebrew; рекомендовано Python 3.13+).
 
 Для семантики — ОДИН із двох рушіїв на вибір ([docs/04](docs/04-semantics.md)):
 - **OpenRouter** (найпростіше): лише API-ключ, ціна копійчана; або
