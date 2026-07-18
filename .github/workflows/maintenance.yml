@@ -8,20 +8,11 @@ permissions:
   contents: read
 
 jobs:
-  test:
+  linux:
     strategy:
       matrix:
-        include:
-          - os: ubuntu-latest
-            python: "3.11"
-          - os: ubuntu-latest
-            python: "3.13"
-          # Apple's system-compatible CPython 3.11 build disables loadable
-          # SQLite extensions. sqlite-vec requires the python.org/Homebrew
-          # build represented by current 3.13 on the macOS runner.
-          - os: macos-latest
-            python: "3.13"
-    runs-on: ${{ matrix.os }}
+        python: ["3.11", "3.13"]
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -30,3 +21,14 @@ jobs:
       - run: python -m pip install "sqlite-vec>=0.1.9,<0.2" "numpy>=2,<3"
       - run: python -m unittest -v tests/test_v1_maintenance.py
       - run: python scripts/release_audit.py
+
+  macos:
+    # actions/setup-python macOS builds disable loadable SQLite extensions.
+    # The product's documented macOS route uses Homebrew/python.org Python.
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: brew install python@3.13
+      - run: $(brew --prefix python@3.13)/bin/python3.13 -m pip install "sqlite-vec>=0.1.9,<0.2" "numpy>=2,<3"
+      - run: $(brew --prefix python@3.13)/bin/python3.13 -m unittest -v tests/test_v1_maintenance.py
+      - run: $(brew --prefix python@3.13)/bin/python3.13 scripts/release_audit.py
