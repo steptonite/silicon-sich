@@ -10,6 +10,7 @@ from pathlib import Path
 DEFAULT_EXCLUDES = {".git", ".venv", "__pycache__"}
 TEXT_SUFFIXES = {
     ".md", ".py", ".sh", ".toml", ".json", ".yaml", ".yml", ".txt",
+    ".html", ".csv", ".ipynb", ".xml", ".tsv",
 }
 PATTERNS = {
     "OpenRouter key": re.compile(r"\bsk-or-v1-[A-Za-z0-9_-]{20,}\b"),
@@ -23,32 +24,40 @@ PATTERNS = {
 }
 
 
-def audit(root: Path) -> list[str]:
+def audit(root: Path) -> tuple[list[str], list[str]]:
     findings: list[str] = []
+    unreadable: list[str] = []
     for path in sorted(root.rglob("*")):
         if not path.is_file() or any(part in DEFAULT_EXCLUDES for part in path.parts):
             continue
         if path.resolve() == Path(__file__).resolve():
             continue
-        if path.suffix.lower() not in TEXT_SUFFIXES and path.name not in {".gitignore"}:
-            continue
+        rel = path.relative_to(root)
         try:
             text = path.read_text(encoding="utf-8")
         except UnicodeDecodeError:
+            tag = (
+                "текстовий суфікс, але не UTF-8"
+                if path.suffix.lower() in TEXT_SUFFIXES
+                else "нетекстовий файл"
+            )
+            unreadable.append(f"{rel} ({tag})")
             continue
-        rel = path.relative_to(root)
         for label, pattern in PATTERNS.items():
             for match in pattern.finditer(text):
                 line = text.count("\n", 0, match.start()) + 1
                 findings.append(f"{rel}:{line}: {label}")
-    return findings
+    return findings, unreadable
 
 
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("root", nargs="?", default=Path(__file__).parents[1], type=Path)
     args = parser.parse_args()
-    findings = audit(args.root.resolve())
+    findings, unreadable = audit(args.root.resolve())
+    if unreadable:
+        print("WARNING: файли не проскановано (не читаються як UTF-8 текст) — перевір руками:")
+        print("\n".join(f"  {item}" for item in unreadable))
     if findings:
         print("RELEASE AUDIT FAILED")
         print("\n".join(f"  {item}" for item in findings))
