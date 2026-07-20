@@ -26,7 +26,8 @@ def locate(tid):
 def write(p,d):
     body=(f"# {d['title']}\n\n## Context\n\n{d.get('context','')}\n\n## Completion condition\n\n{d.get('completion','')}\n")
     fm="\n".join(f'{k}: "{str(v).replace(chr(34), chr(39))}"' for k,v in d.items())
-    p.parent.mkdir(parents=True,exist_ok=True); p.write_text(f"---\n{fm}\n---\n\n{body}",encoding="utf-8")
+    p.parent.mkdir(parents=True,exist_ok=True)
+    tmp=p.with_name(p.name+".tmp"); tmp.write_text(f"---\n{fm}\n---\n\n{body}",encoding="utf-8"); tmp.replace(p)
 def reindex():
     lib=Path(__file__).with_name("librarian.py")
     kit_python=Path(__file__).resolve().parent.parent/".venv"/"bin"/"python"
