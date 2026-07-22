@@ -497,11 +497,26 @@ def index_source(c: sqlite3.Connection, source: str, backend: str, limit: int | 
           file=sys.stderr)
 
 
+def checkpoint_wal(c: sqlite3.Connection) -> None:
+    """Злити WAL у основну базу й обрізати його.
+
+    22.07.2026: база відкривається в journal_mode=WAL, але чекпоінт не робився
+    ніде, і WAL ріс безмежно — на великій базі він здатен перегнати сам файл
+    індексу. SQLite чекпоінтить сам лише коли остання конекція закривається
+    «чисто», а фонові індекси з хука цього не гарантують.
+    """
+    try:
+        c.execute("PRAGMA wal_checkpoint(TRUNCATE)")
+    except sqlite3.Error as exc:
+        print(f"[wal] чекпоінт пропущено: {exc}", file=sys.stderr)
+
+
 def cmd_index(sources: list[str], backend: str, limit: int | None):
     c = connect()
     t0 = time.time()
     for s in sources:
         index_source(c, s, backend, limit)
+    checkpoint_wal(c)
     c.close()
     dt = time.time() - t0
     if _usage_tokens:
