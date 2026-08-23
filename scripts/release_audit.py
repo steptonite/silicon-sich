@@ -24,6 +24,11 @@ PATTERNS = {
 }
 
 
+def _is_detector(line: str) -> bool:
+    """Чи є цей рядок визначенням шаблону пошуку, а не даними."""
+    return "re.compile(" in line or "grep -" in line
+
+
 def audit(root: Path) -> tuple[list[str], list[str]]:
     findings: list[str] = []
     unreadable: list[str] = []
@@ -43,9 +48,17 @@ def audit(root: Path) -> tuple[list[str], list[str]]:
             )
             unreadable.append(f"{rel} ({tag})")
             continue
+        lines = text.splitlines()
         for label, pattern in PATTERNS.items():
             for match in pattern.finditer(text):
                 line = text.count("\n", 0, match.start()) + 1
+                # Рядок, який САМ Є визначенням детектора, — не витік, а
+                # інструмент. doctor.sh шукає чужі абсолютні шляхи регексом
+                # /Users/[A-Za-z]+ і через це ловився власним же аудитом.
+                # Виняток структурний (за формою рядка), а не за іменем файлу:
+                # білий список по імені пропустив би наступний такий детектор.
+                if _is_detector(lines[line - 1] if line <= len(lines) else ""):
+                    continue
                 findings.append(f"{rel}:{line}: {label}")
     return findings, unreadable
 
