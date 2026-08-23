@@ -1,0 +1,22 @@
+# SecondBrainKit V2 — Codex adapter
+
+Root: `<ROOT>`
+
+Config: `<CONFIG>`
+
+Kit: `<KIT>`
+
+1. Before claims about past decisions, run:
+   `SB_CONFIG="<CONFIG>" <KIT>/.venv/bin/python <KIT>/scripts/librarian.py search "topic" --format json`.
+2. A weak recall result is background, not evidence. Rephrase the query and use
+   keyword/source fallback before saying information is absent.
+3. Read the cited source before a consequential answer. Raw chats and external
+   sources are unverified.
+4. Confirmed actions live in `<ROOT>/tasks`; raw ideas live in `<ROOT>/inbox`;
+   durable decisions live in `<ROOT>/memory`.
+5. Never overwrite user data without a snapshot. Use `<KIT>/sbkit.py backup`,
+   `migrate`, `upgrade`, and `rollback`.
+6. After memory writes, reindex `source=memory` and run
+   `<KIT>/sbkit.py health --root "<ROOT>"`.
+7. Never expose keys, archives, or personal notes in commits, diagnostics, or
+   support reports.

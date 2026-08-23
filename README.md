@@ -141,7 +141,6 @@ doctor → demo → install/migrate → backup → upgrade
 install.sh                 одна команда від нуля до працюючої бази
 sbkit.py                   керуюча утиліта: install / upgrade / tiers / backup
 TIERS.toml                 маніфест шарів: який файл до якої версії належить
-COMPANIONS.toml            реєстр застосунків-супутників (окрема вісь від тирів)
 
 scripts/librarian.py       пошук по змісту + JSON API
 scripts/task.py            задачі в Markdown, повний життєвий цикл

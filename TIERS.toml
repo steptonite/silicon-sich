@@ -15,6 +15,11 @@ title = "База старту"
 promise = "Твої архіви стають базою, яку читає агент і шукає по змісту."
 public = true
 paths = [
+  "VERSION",
+  "CHANGELOG.md",
+  "install.sh",
+  "sbkit.py",
+  "requirements.txt",
   "README.md",
   "PLAYBOOK.md",
   "CHECKLIST-HUMAN.md",
@@ -45,6 +50,7 @@ paths = [
   "scripts/hooks/session_start.sh",
   "scripts/hooks/settings-hooks.example.json",
   "templates/CLAUDE.md.template",
+  "templates/AGENTS.md.template",
   "templates/MEMORY.md.template",
   "templates/_HOME.md.template",
   "templates/bridge.md.template",
