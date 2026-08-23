@@ -84,7 +84,12 @@ env_file = "{root}/.env"
         reader = None
         try:
             reader = self.lib.connect(read_only=True)
-            rows = self.lib.vector_search(reader, vector(), 1)
+            # Ім'я функції розійшлось між публічною копією v1 (vector_search)
+            # і джерелом (_readonly_vector_search) — властивість та сама:
+            # пошук на read-only базі не має нічого дописувати. Тест стереже
+            # ВЛАСТИВІСТЬ, тому приймає обидва імені, а не ламається на переїзді.
+            search = getattr(self.lib, "vector_search", None) or self.lib._readonly_vector_search
+            rows = search(reader, vector(), 1)
             self.assertEqual(rows[0][0], row)
             self.assertFalse(Path(f"{db}-wal").exists())
             self.assertFalse(Path(f"{db}-shm").exists())

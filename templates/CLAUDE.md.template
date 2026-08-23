@@ -1,7 +1,12 @@
 # Global Claude Instructions — Second Brain дисципліна
 
-<!-- Скопіюй у ~/.claude/CLAUDE.md (або злий з наявним). Заміни <KIT> на абсолютний
-     шлях до second-brain-kit. Пояснення КОЖНОГО правила: <KIT>/docs/07-model-discipline.md -->
+Root: `<ROOT>`
+
+Config: `<CONFIG>`
+
+Kit: `<KIT>`
+
+<!-- Generated adapter. Пояснення правил: <KIT>/docs/07-model-discipline.md -->
 
 ## 🔴 Другий мозок — залізна дисципліна
 
@@ -26,6 +31,14 @@
    префіксом + frontmatter + ≥1 uplink на hub_* + рядок у MEMORY.md (хук memory_lint
    простежить). Сирі архіви (chats/) — IMMUTABLE, лише читати. Кожна операція над
    бібліотекою (ingest/query/lint/structure) = рядок у log.md.
+8. **ЕКСПЕРТНА ЗАДАЧА:** оцінка/порада у домені, для якого є локальна база, = спершу
+   прочитай доменний hub/skill і зроби librarian search, потім давай вердикт. Заповни
+   власні маршрути: `<ДОМЕН> → <hub/skill> + --source <source>`. Приватні методики не
+   хардкодяться у публічний Kit.
+9. **ОДИН ПОШУК ≠ ПОШУК:** перед «не знайшов» зроби 2–3 семантичні запити іншими
+   словами та keyword/source-фолбек. Слабкий auto-recall = вказівник, не відповідь.
+10. **ЧАСОВИЙ НАМІР:** «останнє/актуальне/після дати» → повтори librarian search з
+    `--after/--before` (за потреби `--prefer-recent`). `mtime` не є датою факту.
 
 ## Токени
 

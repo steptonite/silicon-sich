@@ -1,0 +1,74 @@
+# Маніфест тирів SecondBrainKit — зібрано для тиру v1.
+#
+# Тири НАШАРОВУЮТЬСЯ: кожен наступний = попередній + свої файли, і жоден
+# не перевизначає чужих. Тому апгрейд ніколи нічого не ламає, а установка
+# «одразу з нуля у верхній тир» дає рівно те саме, що ланцюжок знизу вгору.
+#
+# Перевірка цілісності: `python3 sbkit.py tiers --verify`
+
+schema = 1
+default = "v1"
+
+[tier.v1]
+order = 1
+title = "База старту"
+promise = "Твої архіви стають базою, яку читає агент і шукає по змісту."
+public = true
+paths = [
+  "README.md",
+  "PLAYBOOK.md",
+  "CHECKLIST-HUMAN.md",
+  "LICENSE.md",
+  "HUMAN-PHRASEBOOK.md",
+  "doctor.sh",
+  "tests/test_v1_maintenance.py",
+  "docs/0*.md",
+  "docs/1[0-3]-*.md",
+  "scripts/setup.sh",
+  "scripts/config.example.toml",
+  "scripts/sb_config.py",
+  "scripts/librarian.py",
+  "scripts/task.py",
+  "scripts/sanitize.py",
+  "scripts/embed_journal.py",
+  "scripts/embed_contract.py",
+  "scripts/cost_gate.py",
+  "scripts/release_audit.py",
+  "scripts/brain_refresh.py",
+  "scripts/distill_delta.py",
+  "scripts/archive_sessions.py",
+  "scripts/convert_*.py",
+  "scripts/hooks/memory_lint.py",
+  "scripts/hooks/semantic_recall.py",
+  "scripts/hooks/force_librarian.py",
+  "scripts/hooks/pre_compact.sh",
+  "scripts/hooks/session_start.sh",
+  "scripts/hooks/settings-hooks.example.json",
+  "templates/CLAUDE.md.template",
+  "templates/MEMORY.md.template",
+  "templates/_HOME.md.template",
+  "templates/bridge.md.template",
+  "templates/canon.md",
+  "templates/hub.template.md",
+  "templates/log.md.template",
+  "templates/memory-note.template.md",
+  "skills/library-check/SKILL.md",
+  "fixtures/**",
+]
+
+[tier.v2]
+order = 2
+title = "Відкалібрована робоча машинка"
+promise = "Воно не зламається у тебе на залізі: бекап перед кожною зміною, відкат, перевірка здоров'я."
+available = false   # цього шару в цій збірці немає
+buy_url = "https://github.com/steptonite"
+
+[tier.v3]
+order = 3
+title = "Та, що ловить сама себе на брехні"
+promise = "Агент звіряє сказане із записаним: рішення, що прозвучало й не лягло в базу, більше не зникає."
+available = false   # цього шару в цій збірці немає
+buy_url = "https://github.com/steptonite"
+
+[infrastructure]
+paths = [".github/**", ".gitignore", "BUILD.json"]

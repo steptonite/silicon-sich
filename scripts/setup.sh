@@ -6,7 +6,7 @@
 #
 # Що робить:
 #   1. Перевіряє python3 ≥ 3.11 (потрібен tomllib).
-#   2. Створює venv у корені кита + ставить sqlite-vec і numpy.
+#   2. Створює venv у корені кита + ставить pinned runtime dependencies.
 #   3. Перевіряє Ollama і модель bge-m3 (🙋 якщо нема — каже, що зробити руками).
 #   4. Якщо нема config.toml — копіює з config.example.toml і зупиняється
 #      (🙋 людина/модель редагує шляхи), інакше:
@@ -30,19 +30,9 @@ if [ ! -d .venv ]; then
   python3 -m venv .venv
   echo "✅ створено .venv"
 fi
-.venv/bin/pip install --quiet --upgrade pip sqlite-vec numpy
+.venv/bin/pip install --quiet --upgrade pip
+.venv/bin/pip install --quiet -r requirements.txt
 echo "✅ deps: sqlite-vec ($(.venv/bin/pip show sqlite-vec | grep Version)); numpy"
-.venv/bin/python - <<'PY'
-import sqlite3
-
-c = sqlite3.connect(":memory:")
-if not hasattr(c, "enable_load_extension"):
-    raise SystemExit(
-        "❌ Ця збірка Python вимикає SQLite extensions, потрібні sqlite-vec. "
-        "На macOS встанови актуальний Python через python.org або Homebrew "
-        "(рекомендовано 3.13+) і створи .venv заново."
-    )
-PY
 
 # 3. Embed-рушій (ОПЦІЙНИЙ вибір, див. docs/04-semantics.md):
 #    A) OpenRouter — нічого не ставити локально (openrouter_enabled=true + ключ у config)
@@ -88,8 +78,12 @@ root = P(CFG["vault"]["root"])
 memory = P(CFG["vault"]["memory"])
 inbox = P(CFG["vault"]["inbox"])
 tasks = P(CFG["vault"].get("tasks", "~/SecondBrain/tasks"))
+external = P(CFG["vault"].get("external", "~/SecondBrain/external"))
 db = P(CFG["index"]["db_path"])
-for d in (root, memory, inbox, tasks / "active", tasks / "archive", db.parent):
+for d in (
+    root, memory, inbox, tasks / "active", tasks / "archive",
+    external / "raw", external / "source_cards", external / "distilled", db.parent,
+):
     d.mkdir(parents=True, exist_ok=True)
     print(f"✅ тека: {d}")
 
@@ -104,13 +98,20 @@ def link(target: Path, name: str):
 # memory та архіви — symlink у vault-корінь, файли фізично лишаються на місцях
 if memory.resolve() != (root / "memory").resolve():
     link(memory, "memory")
-for key in ("chatgpt", "gemini", "claude", "claude_code", "codex"):
+link_names = {
+    "chatgpt": "chatgpt-archive",
+    "gemini": "gemini-archive",
+    "claude": "claude-archive",
+    "claude_code": "claude-code-archive",
+    "codex": "codex-archive",
+}
+for key, name in link_names.items():
     if key not in CFG["archives"]:
         continue
     arch = P(CFG["archives"][key])
     arch.mkdir(parents=True, exist_ok=True)
     if arch.resolve().parent != root.resolve():
-        link(arch, f"{key}-archive")
+        link(arch, name)
 if tasks.resolve().parent != root.resolve():
     link(tasks, "tasks")
 PY

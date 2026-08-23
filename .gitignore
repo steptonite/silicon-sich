@@ -6,8 +6,24 @@ scripts/config.toml
 __pycache__/
 .DS_Store
 .env
+.backups/
+.sbkit/
+archives/
+memory/
+inbox/
+tasks/
+external/
+config.toml
 
 # Локальні налаштування Claude Code — містять абсолютні шляхи користувача.
 # Досі їх ловив лише ГЛОБАЛЬНИЙ ~/.config/git/ignore, тобто на іншій машині
 # або в контриб'ютора вони б поїхали в репо. Тепер захист живе в самому репо.
 .claude/settings.local.json
+
+# Внутрішній робочий документ — стратегія, не для очей покупця.
+PORT-LEDGER.md
+
+# декодер відбитків і журнал іменних копій — ніколи в git
+WATERMARK.toml
+sbkit-license-ledger.json
+/dist/

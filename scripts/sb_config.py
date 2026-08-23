@@ -19,6 +19,7 @@ import tomllib
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
+SUPPORTED_CONFIG_SCHEMA = 2
 
 
 def P(s: str) -> Path:
@@ -47,7 +48,14 @@ def load() -> dict:
     path = _find_config()
     with open(path, "rb") as f:
         cfg = tomllib.load(f)
+    schema = int(cfg.get("kit", {}).get("config_schema", 1))
+    if schema > SUPPORTED_CONFIG_SCHEMA:
+        sys.exit(
+            f"ERROR: config schema {schema} новіша за підтримувану "
+            f"{SUPPORTED_CONFIG_SCHEMA}. Онови SecondBrainKit."
+        )
     cfg["_config_path"] = str(path)
+    cfg["_config_schema"] = schema
     return cfg
 
 

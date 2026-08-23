@@ -1,103 +1,162 @@
-# Second Brain Kit
+# SecondBrainKit
 
-> **V1 — безкоштовний стабільний starter kit.** Ця гілка отримує лише
-> security, data-loss і compatibility fixes. Нові можливості, guided installer,
-> міграції та підтримка Claude/Codex розвиваються у приватному SecondBrainKit V2.
-> До відкриття продажів V2 використовуйте цей репозиторій і стежте за
-> оголошеннями автора.
+> **Приватна платна бета · 3.0.0-beta.1**
 
-Відтворюваний набір для побудови **персонального «другого мозку»** навколо Claude:
-усі ваші чати з ChatGPT/Gemini/Claude перетворюються на локальну базу знань з
-семантичним пошуком, Obsidian-графом і моделлю, яка справді пам'ятає — між сесіями,
-компактами й акаунтами.
+Кит дає агенту зовнішню памʼять про твою історію: архіви чатів перетворюються на
+локальну базу, пошук знаходить потрібне **по змісту**, а Claude Code і Codex читають
+джерела замість того, щоб щоразу випитувати контекст заново.
 
-**Виконавець — модель (Claude в Claude Code), людина лише спостерігає** і робить
-кілька ручних кроків (скачати експорти, поставити Obsidian, апрувнути).
+## Три версії, одна установка
 
-## Що отримуєте
+Версії **нашаровуються**. Не буває «переставити з нуля під нову» — є одна база в
+одному місці й один рух: підняти тир.
 
-- 📦 Lossless MD-архів усіх ваших чатів (1 розмова = 1 файл, читається в Obsidian)
-- 🔎 Семантичний пошук по СЕНСУ (bge-m3 + sqlite-vec; рушій на вибір — хмарний
-  OpenRouter за копійки або локальний Ollama за $0)
-- 🕸 Один Obsidian-граф: нотатки-факти + архіви + зв'язки
-- 🤖 Клод із дисципліною пам'яті: авто-пригадування на кожне повідомлення (хук),
-  лінт нотаток у момент запису (хук), міст між сесіями (bridge.md)
-- 📉 Економію токенів: у контекст їдуть 3 сніпети, а не тонни історії
-- ✅ Локальні Markdown-задачі: `tasks/active` → незмінний `archive/YYYY-MM`
-- 🔄 Ручний інкрементальний refresh локальних Claude Code/Codex сесій
-- 🧪 Перевірку курованих нот на дати, провенанс і чесне маркування невпевненості
+| | По-простому | Що дає |
+|---|---|---|
+| **v1** *(безкоштовна, [публічне репо](https://github.com/steptonite/step_secondbrain_kit))* | база старту | твої архіви стають базою, яку агент читає й шукає по змісту |
+| **v2** | відкалібрована робоча машинка | воно не зламається у тебе на залізі: бекап перед кожною зміною, відкат, перевірка здоровʼя |
+| **v3** | та, що ловить сама себе на брехні | агент звіряє **сказане із записаним**: рішення, що прозвучало й не лягло в базу, більше не зникає |
 
-Метафора: сирі чати — **склад** → дистиляція — **каталог** → семантика —
-**бібліотекар, що розуміє питання** → граф — **стежки між полицями**.
-
-## Швидкий старт
-
-1. Відкрий цю теку в Claude Code і скажи моделі: **«Виконуй PLAYBOOK.md»**.
-2. Далі вона вестиме процес сама і казатиме, де потрібні твої 🙋-кроки.
-3. Тримай відкритим [HUMAN-PHRASEBOOK.md](HUMAN-PHRASEBOOK.md) — одна сторінка:
-   що казати моделі, щоб вона зробила саме те, і на чому її ловити. Читається за
-   5 хвилин і економить перший тиждень.
-
-Щось не працює — `bash doctor.sh` (перевірка встановленої копії; `--fix` лагодить
-безпечне). Переустановка поверх — найгірший перший крок.
-
-Ручний шлях — той самий [PLAYBOOK.md](PLAYBOOK.md), етапи 0–7.
-
-## Карта репо
-
-```
-PLAYBOOK.md            ← ГОЛОВНЕ: покрокова інструкція для моделі-виконавця
-CHECKLIST-HUMAN.md     ← коротко: що робить людина
-HUMAN-PHRASEBOOK.md    ← що людина КАЖЕ моделі і як перевіряє сказане нею
-doctor.sh              ← перевірка встановленої копії (не переустановка)
-docs/                  ← глибина по кожному етапу
-  00-philosophy        02-convert          05-hooks           07-model-discipline
-  01-export            03-vault            06-distillation    08-troubleshooting
-                       04-semantics        09-teaching (як навчати людину системі)
-                                           10-portability (Codex та інші агенти)
-  11-tasks · 12-live-refresh · 13-library-maintenance
-scripts/               ← робочі інструменти (конфіг шляхів: config.example.toml)
-  setup.sh · convert_chatgpt.py · convert_gemini.py · convert_claude.py
-  librarian.py · task.py · brain_refresh.py · archive_sessions.py
-  distill_delta.py · sanitize.py · hooks/
-templates/             ← CLAUDE.md, канон vault, шаблони нот/хабів/bridge
-fixtures/              ← синтетичні міні-експорти для перевірки скриптів
-```
-
-## Три різні шари
-
-- `inbox/` — сирі думки й надиктовки, які ще треба класифікувати.
-- `tasks/` — підтверджені дії зі станом, строком і completion condition.
-- `memory/` та `knowledge/` — довготривалі факти, рішення й куровані висновки.
-
-Не перетворюйте кожну ідею на задачу, а завершену задачу — автоматично на знання.
-Деталі: [docs/11-tasks.md](docs/11-tasks.md).
-
-## Вимоги
-
-macOS або Linux · Python ≥ 3.11 · [Obsidian](https://obsidian.md) · Claude Code.
-На macOS потрібна збірка Python із підтримкою SQLite extensions
-(python.org/Homebrew; рекомендовано Python 3.13+).
-
-Для семантики — ОДИН із двох рушіїв на вибір ([docs/04](docs/04-semantics.md)):
-- **OpenRouter** (найпростіше): лише API-ключ, ціна копійчана; або
-- **[Ollama](https://ollama.com)** (модель bge-m3, ≈1.1 ГБ): локально, $0, приватно.
-  На macOS керувати Ollama зручно через GUI [KobzarAI](https://github.com/steptonite/KobzarAI).
-
-## Перевірка кита без своїх даних
+## Установка — одна команда
 
 ```bash
-bash scripts/setup.sh
-python3 scripts/convert_chatgpt.py --src fixtures/chatgpt-sample --out /tmp/sb-demo/chatgpt-archive
+bash install.sh
 ```
 
-— у `/tmp/sb-demo` з'являться готові MD-нотатки з синтетичних розмов.
+Безпечно запускати **поверх уже наявної бази** і повторно. Якщо в корені лежить
+вольт від безкоштовної версії — Кит його підхопить: зробить бекап, додасть свій
+шар і нічого не видалить.
 
-## Підтримка й ліцензія
+Усі чотири шляхи робочі й дають однаковий результат:
 
-- V1 можна безкоштовно використовувати для власної особистої або професійної
-  роботи.
-- Перепродаж, перепакування, публічне поширення копій і включення у сторонні
-  продукти заборонені; повні умови — [LICENSE.md](LICENSE.md).
-- Перед публічним релізом запускайте
-  `.venv/bin/python scripts/release_audit.py`.
+```bash
+bash install.sh --tier v1          # почав з безкоштовної
+python3 sbkit.py upgrade --to v2   # походив на v1 → взяв наступну
+```
+
+Що стоїть зараз і які шари активні:
+
+```bash
+python3 sbkit.py tiers --root ~/SecondBrain
+```
+
+Подробиці: [docs/19-tiers.md](docs/19-tiers.md).
+
+## Подивитись, нічого не встановлюючи
+
+```bash
+python3 sbkit.py doctor
+bash scripts/setup.sh
+.venv/bin/python sbkit.py demo
+```
+
+`demo` не потребує API-ключа чи особистих даних: створює синтетичний індекс,
+показує, звідки взято кожен результат, і прибирає за собою.
+
+## Звід — те, заради чого існує v3
+
+`RECONCILE.md` — список того, що прозвучало в розмові й **не доїхало** до бази.
+Наповнюється автоматично, вкидається у кожну сесію на старті, тому модель фізично
+не може його не побачити.
+
+Дзеркальний бік — `TASK_RECONCILE.md`: дії, які вже зроблено, а задача досі відкрита.
+
+Контур зводу входить у **v3**: `python3 sbkit.py tiers` покаже, як його підняти.
+
+## Супутники — окремі безкоштовні застосунки
+
+Кит працює без них. Вони прибирають шви між тобою і агентом:
+
+| | Що робить |
+|---|---|
+| [KobzarAI](https://github.com/steptonite/KobzarAI) | панель для локальних моделей Ollama — без термінала |
+| [Pysar](https://github.com/steptonite/pysar) | диктування і розшифровка на самому Маку: натиснув Caps Lock, сказав, текст під курсором |
+| [Осавул](https://github.com/steptonite/osavul) | пульт рутин: що і коли запускається, пауза й вимкнення — без моделі |
+
+Агент пропонує їх **тільки за приводом** — коли на цій машині реально є привід — і
+рівно один раз за сесію. Перевірити, що спрацює зараз:
+
+
+Двигун приводів входить у **v2**: `python3 sbkit.py tiers` покаже, як його підняти.
+
+## З безкоштовної на платну
+
+```bash
+python3 sbkit.py install --tier v2 --root ~/SecondBrain
+```
+
+Якщо конфіг від v1 лежить окремо, є явна міграція з попереднім переглядом
+(dry-run нічого не змінює):
+
+```bash
+.venv/bin/python sbkit.py migrate --from v1 \
+  --source-config ~/старий/config.toml --root ~/SecondBrain
+.venv/bin/python sbkit.py migrate --from v1 \
+  --source-config ~/старий/config.toml --root ~/SecondBrain --apply
+```
+
+## Щоденна робота
+
+```bash
+# semantic recall
+SB_CONFIG="$HOME/SecondBrain/.sbkit/config.toml" \
+  .venv/bin/python scripts/librarian.py search "останнє рішення" \
+  --after 2026-07-01 --prefer-recent --format json
+
+# deterministic task state
+SB_CONFIG="$HOME/SecondBrain/.sbkit/config.toml" \
+  .venv/bin/python scripts/task.py list
+
+# local Claude/Codex session ingest
+SB_CONFIG="$HOME/SecondBrain/.sbkit/config.toml" \
+  .venv/bin/python scripts/brain_refresh.py
+
+# read-only health report
+.venv/bin/python sbkit.py health --root "$HOME/SecondBrain"
+```
+
+## Lifecycle
+
+```text
+doctor → demo → install/migrate → backup → upgrade
+                              ↘ restore / rollback
+```
+
+- `search`, `stats`, `prune` dry-run і `health` не потребують write-доступу до
+  індексу.
+- `prune --apply`, `index`, `install`, `migrate --apply`, `upgrade`, `restore`
+  та `rollback` є явними мутаціями.
+- Хмарні ChatGPT/Gemini/Claude exports у 2.0 завантажуються вручну.
+- Ніяких cron/launchd-автозапусків Kit не ставить.
+
+## Підтримка платформ
+
+- macOS — основний guided маршрут;
+- Linux — підтриманий CLI-маршрут;
+- Windows/WSL — не обіцяється до окремого acceptance-пілота.
+
+## Структура
+
+```text
+install.sh                 одна команда від нуля до працюючої бази
+sbkit.py                   керуюча утиліта: install / upgrade / tiers / backup
+TIERS.toml                 маніфест шарів: який файл до якої версії належить
+COMPANIONS.toml            реєстр застосунків-супутників (окрема вісь від тирів)
+
+scripts/librarian.py       пошук по змісту + JSON API
+scripts/task.py            задачі в Markdown, повний життєвий цикл
+scripts/brain_refresh.py   інкрементальний доїзд сесій Claude/Codex
+
+
+templates/                 адаптери для Claude Code і Codex + фрагменти тирів
+fixtures/                  синтетичні дані для тестів
+docs/                      покрокові інструкції, від експорту архівів до тирів
+```
+
+## Ліцензія й підтримка
+
+Це приватний платний single-user продукт. Тири v2 і v3 ліцензуються окремо;
+репозиторій, релізні архіви і код не можна передавати іншим. Тир v1 —
+безкоштовний і публічний, він живе в окремому репозиторії й на нього ці обмеження
+не поширюються. Застосунки-супутники — окремі продукти зі своїми ліцензіями. Деталі: [LICENSE.md](LICENSE.md) і
+[SUPPORT.md](SUPPORT.md).

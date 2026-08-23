@@ -4,6 +4,14 @@
 # Всі шляхи можна писати з ~ — вони розгортаються автоматично.
 # ══════════════════════════════════════════════════════════════════
 
+[kit]
+version = "3.0.0-beta.1"
+config_schema = 2
+data_schema = 2
+profile = "guided"
+# Який шар версій активний: v1 / v2 / v3. Ставить sbkit.py, руками не чіпай.
+tier = "v2"
+
 [user]
 # Як підписувати людину в конвертованих чатах (заголовки ## 🧑 …)
 name = "Користувач"
@@ -18,6 +26,8 @@ memory = "~/.claude/projects/-/memory"
 inbox = "~/SecondBrain/inbox"
 # Підтверджені дії: active/ + archive/YYYY-MM/. Це НЕ inbox і НЕ knowledge.
 tasks = "~/SecondBrain/tasks"
+# Зовнішні джерела: raw → source_cards → distilled → canonical
+external = "~/SecondBrain/external"
 
 [archives]
 # Куди складати конвертовані MD-архіви чатів (по одному кореню на джерело).
@@ -37,6 +47,8 @@ codex_sessions = "~/.codex/sessions"
 
 [maintenance]
 log_path = "~/SecondBrain/log.md"
+backup_dir = "~/SecondBrain/.backups"
+diagnostic_dir = "~/.config/second-brain/logs"
 
 [claude_code]
 # Транскрипти сесій Claude Code (.jsonl) — індексуються як source=transcript
@@ -64,5 +76,11 @@ db_path = "~/SecondBrain/.index/index.db"
 ollama_url = "http://localhost:11434"
 ollama_model = "bge-m3"
 openrouter_enabled = false
+# Чи можна ходити в OpenRouter САМОСТІЙНО, коли Ollama лежить.
+# false (дефолт): ні. Кит скаже, що Ollama не піднялась, і зупиниться — краще
+# так, ніж мовчки списати гроші за те, що мало бути безкоштовним. Разовий вихід
+# завжди доступний прапорцем --backend openrouter.
+openrouter_fallback = false
 openrouter_model = "baai/bge-m3"
 env_file = "~/.config/second-brain/.env"
+
