@@ -16,6 +16,25 @@ from pathlib import Path
 
 from sb_config import CFG, P
 
+
+def write_atomic(path: Path, text: str) -> None:
+    """Запис у сусідній .tmp і підміна на місці.
+
+    Порт із публічного репозиторію (PR #2, 20.07.2026), де цю дірку знайшли
+    раніше: прямий write_text лишав обрізаний файл, якщо процес падав або
+    скінчилось місце посеред запису. Задача — це стан людини; напівзаписана
+    задача гірша за незаписану, бо виглядає як ціла.
+
+    🔴 Правка два місяці жила ТІЛЬКИ у збірці й не існувала в джерелі — тобто
+    наступна перезбірка мовчки зняла б її. Прийняв PR у публічний репозиторій —
+    тим же ходом заводь у джерело.
+    """
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_name(path.name + ".tmp")
+    tmp.write_text(text, encoding="utf-8")
+    tmp.replace(path)
+
+
 ROOT = P(CFG["vault"].get("tasks", "~/SecondBrain/tasks"))
 ACTIVE = ROOT / "active"
 ARCHIVE = ROOT / "archive"
@@ -178,7 +197,7 @@ def sync_registry() -> None:
         text = re.sub(r"<!-- registry:start -->.*?<!-- registry:end -->", lambda _: block, text, flags=re.S)
     else:
         text = text.rstrip() + "\n\n" + block + "\n"
-    index.write_text(text, encoding="utf-8")
+    write_atomic(index, text)
 
 
 def cmd_add(args: argparse.Namespace) -> None:
@@ -194,7 +213,7 @@ def cmd_add(args: argparse.Namespace) -> None:
     }
     filename = f"{today().isoformat()}_{slugify(args.title)}_{task_id}.md"
     path = ACTIVE / filename
-    path.write_text(render(data, args.context or "", args.completion or "", []), encoding="utf-8")
+    write_atomic(path, render(data, args.context or "", args.completion or "", []))
     sync_registry()
     print(f"CREATED {task_id}\nPATH {path}")
 
@@ -296,7 +315,7 @@ def cmd_show(args: argparse.Namespace) -> None:
 
 def save_updated(path: Path, data: dict[str, str], context: str, completion: str, history: list[str]) -> None:
     data["updated"] = stamp()
-    path.write_text(render(data, context, completion, history), encoding="utf-8")
+    write_atomic(path, render(data, context, completion, history))
 
 
 def cmd_done(args: argparse.Namespace) -> None:
