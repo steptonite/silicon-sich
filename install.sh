@@ -22,7 +22,7 @@ while [ $# -gt 0 ]; do
   esac
 done
 
-echo "── Second Brain Kit ──"
+echo "── Кремнієва Січ ──"
 
 # 1. Python. Причина перевірки: tomllib зʼявився у 3.11, а sqlite-vec потребує
 #    збірки з увімкненими extensions — обидва провали інакше вилазять пізно й глухо.

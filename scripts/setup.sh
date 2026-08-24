@@ -1,5 +1,5 @@
 #!/bin/bash
-# setup.sh — підготовка середовища Second Brain Kit.
+# setup.sh — підготовка середовища Кремнієвої Січі.
 # Ідемпотентний: можна ганяти повторно. Нічого не видаляє, лише створює.
 #
 #   bash scripts/setup.sh
@@ -16,7 +16,7 @@ set -e
 KIT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$KIT"
 
-echo "── Second Brain Kit setup ── ($KIT)"
+echo "── Кремнієва Січ: setup ── ($KIT)"
 
 # 1. python ≥ 3.11
 if ! python3 -c 'import sys; sys.exit(0 if sys.version_info >= (3,11) else 1)'; then
