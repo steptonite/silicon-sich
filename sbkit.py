@@ -15,6 +15,7 @@ import json
 import os
 import platform
 import re
+import shlex
 import shutil
 import subprocess
 import sys
@@ -404,11 +405,20 @@ def cmd_doctor(args: argparse.Namespace) -> int:
         report["tier"] = None
     hooks = hooks_wired(state.get("agents"))
     report["hooks"] = hooks
+    installed_agents = set(state.get("agents") or [])
     for agent, wired in hooks.items():
-        if wired is False:
+        # 🔴 10.10.2026: None (нема settings.json або хуків) для агента з установки
+        # раніше давало ready:true — пілот-Claude мав «готово» без жодного хука.
+        if wired is None and agent == "claude" and agent in installed_agents:
+            report["issues"].append(
+                "хуки для claude не підключені (нема ~/.claude/settings.json або в ньому "
+                "нема хуків кита) — компакт-щит і авто-пригадування НЕ працюють. "
+                "Виправ: python3 sbkit.py hooks install --agent claude")
+            ready = False
+        elif wired is False:
             report["issues"].append(
                 f"хуки для {agent} не підключені — компакт-щит і авто-пригадування "
-                f"НЕ працюють, хоч файли стоять (див. docs/05-hooks.md, docs/18-codex-hooks.md)")
+                f"НЕ працюють, хоч файли стоять (див. docs/05-hooks.md)")
             ready = False
     report["ready"] = ready
     hint = companion_hint()
@@ -445,6 +455,100 @@ def hooks_wired(agents: list[str] | None) -> dict:
             continue
         result[agent] = any(needle in text for needle in needles)
     return result
+
+
+HOOKS_EXAMPLE = KIT / "scripts" / "hooks" / "settings-hooks.example.json"
+
+
+def _hook_script(command: str) -> str | None:
+    """Файл скрипта з команди хука (перший токен .sh/.py)."""
+    try:
+        tokens = shlex.split(command)
+    except ValueError:
+        tokens = command.split()
+    return next((t for t in tokens if t.endswith((".sh", ".py"))), None)
+
+
+def merge_hooks(existing: dict, example: dict, kit: Path) -> tuple[dict, list, list]:
+    """Влити хуки кита в settings. Чужі ключі й хуки не чіпає; ідемпотентно.
+
+    Повертає (новий settings, додане, пропущене). Додає окрему групу лише з тими
+    хуками, яких ще нема (за точною командою); хук того ж скрипта з ІНШИМ шляхом
+    не дублюємо, а лише повідомляємо.
+    """
+    merged = json.loads(json.dumps(existing))
+    hooks = merged.setdefault("hooks", {})
+    if not isinstance(hooks, dict):
+        raise SystemExit("ERROR: у settings.json ключ «hooks» не обʼєкт — не чіпаю.")
+    added: list[str] = []
+    skipped: list[str] = []
+    kit_s = shlex.quote(str(kit)) if re.search(r"[^\w@%+=:,./-]", str(kit)) else str(kit)
+    for event, groups in example.get("hooks", {}).items():
+        have = hooks.setdefault(event, [])
+        have_cmds = [h.get("command", "") for g in have for h in g.get("hooks", [])]
+        for group in groups:
+            fresh = []
+            for hook in group.get("hooks", []):
+                cmd = hook["command"].replace("<KIT>", kit_s)
+                script = Path(_hook_script(cmd) or "").name
+                if cmd in have_cmds:
+                    skipped.append(f"{event}: {cmd} (вже є)")
+                    continue
+                if script and any(script in c for c in have_cmds):
+                    skipped.append(f"{event}: {script} уже підключений з іншим шляхом — не дублюю, "
+                                   "перевір вручну")
+                    continue
+                fresh.append({**hook, "command": cmd})
+                have_cmds.append(cmd)
+                added.append(f"{event}: {cmd}")
+            if fresh:
+                new_group = {k: v for k, v in group.items() if k != "hooks"}
+                new_group["hooks"] = fresh
+                have.append(new_group)
+    return merged, added, skipped
+
+
+def cmd_hooks(args: argparse.Namespace) -> int:
+    settings = Path(args.settings).expanduser() if args.settings \
+        else Path.home() / ".claude" / "settings.json"
+    example = json.loads(HOOKS_EXAMPLE.read_text(encoding="utf-8"))
+    for groups in example.get("hooks", {}).values():     # не ставимо хук на неіснуючий файл
+        for group in groups:
+            for hook in group.get("hooks", []):
+                script = _hook_script(hook["command"].replace("<KIT>", str(KIT)))
+                if script and not Path(script).exists():
+                    raise SystemExit(f"ERROR: приклад хуків веде на неіснуючий файл {script}")
+    existing: dict = {}
+    if settings.exists():
+        try:
+            existing = json.loads(settings.read_text(encoding="utf-8") or "{}")
+        except ValueError as exc:
+            raise SystemExit(f"ERROR: {settings} не парситься ({exc}) — нічого не змінено.")
+        if not isinstance(existing, dict):
+            raise SystemExit(f"ERROR: {settings} не JSON-обʼєкт — нічого не змінено.")
+    merged, added, skipped = merge_hooks(existing, example, KIT)
+    print(f"settings: {settings}")
+    for line in skipped:
+        print(f"  = {line}")
+    if not added:
+        print("Нічого додавати: хуки кита вже підключені.")
+        return 0
+    for line in added:
+        print(f"  + {line}")
+    if args.dry_run:
+        print("--dry-run: файл не змінено.")
+        return 0
+    settings.parent.mkdir(parents=True, exist_ok=True)
+    if settings.exists():
+        stamp = dt.datetime.now().strftime("%Y%m%d-%H%M%S")
+        backup = settings.with_name(f"{settings.name}.sbkit-bak-{stamp}")
+        shutil.copy2(settings, backup)
+        print(f"бекап: {backup}")
+    tmp = settings.with_name(settings.name + ".sbkit-tmp")
+    tmp.write_text(json.dumps(merged, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    os.replace(tmp, settings)
+    print(f"Записано {len(added)} хук(ів). Перезапусти сесію Claude Code, щоб вони запрацювали.")
+    return 0
 
 
 def companion_hint() -> dict | None:
@@ -949,6 +1053,13 @@ def parser() -> argparse.ArgumentParser:
     p.add_argument("--profile", choices=("guided", "advanced"), default="guided")
     p.add_argument("--agent", choices=("claude", "codex", "both"), default="both")
     p.set_defaults(func=cmd_install)
+    p = sub.add_parser("hooks", help="підключити хуки кита до агента")
+    hs = p.add_subparsers(dest="hooks_command", required=True)
+    h = hs.add_parser("install", help="злити хуки з прикладу в ~/.claude/settings.json (з бекапом)")
+    h.add_argument("--agent", choices=("claude",), default="claude")
+    h.add_argument("--settings", help="інший settings.json (для перевірок); за замовчуванням ~/.claude/settings.json")
+    h.add_argument("--dry-run", action="store_true")
+    h.set_defaults(func=cmd_hooks)
     p = sub.add_parser("tiers", help="які тири є, що стоїть зараз")
     p.add_argument("--root", default=DEFAULT_ROOT)
     p.add_argument("--verify", action="store_true",

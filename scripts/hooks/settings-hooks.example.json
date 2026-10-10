@@ -17,11 +17,6 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 <KIT>/scripts/hooks/pre_compact_snapshot.py",
-            "timeout": 15
-          },
-          {
-            "type": "command",
             "command": "bash <KIT>/scripts/hooks/pre_compact.sh",
             "timeout": 10
           }

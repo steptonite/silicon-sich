@@ -4,19 +4,21 @@
 #   bash install.sh                 # спитає тир
 #   bash install.sh --tier v2       # без питань
 #   bash install.sh --tier v2 --root ~/SecondBrain
+#   bash install.sh --tier v1 --agent claude --hooks yes   # ще й хуки в ~/.claude/settings.json
 #
 # Безпечно запускати повторно і поверх уже наявної бази: перед будь-якою
 # зміною робиться бекап, дані не перезаписуються.
 set -euo pipefail
 
 KIT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-TIER=""; ROOT="$HOME/SecondBrain"; AGENT="both"
+TIER=""; ROOT="$HOME/SecondBrain"; AGENT="both"; HOOKS="ask"
 
 while [ $# -gt 0 ]; do
   case "$1" in
     --tier)  TIER="$2"; shift 2 ;;
     --root)  ROOT="$2"; shift 2 ;;
     --agent) AGENT="$2"; shift 2 ;;
+    --hooks) HOOKS="$2"; shift 2 ;;   # yes | no | ask (за замовчуванням)
     -h|--help) sed -n '2,12p' "$0"; exit 0 ;;
     *) echo "Невідомий аргумент: $1" >&2; exit 2 ;;
   esac
@@ -107,6 +109,28 @@ fi
 # 5. Установка. Ідемпотентна, бекап-перша, підхоплює наявну базу.
 echo "── ставлю $TIER у $ROOT"
 "$PY_BIN" "$KIT/sbkit.py" install --tier "$TIER" --root "$ROOT" --agent "$AGENT"
+
+# 5b. Хуки Claude Code. Без них файли стоять, а компакт-щит і авто-пригадування
+#     не працюють (doctor це покаже як ready:false). Пишемо в ~/.claude/settings.json
+#     лише за згодою; sbkit робить бекап, чужі хуки не чіпає, повтор не дублює.
+if [ "$AGENT" = "claude" ] || [ "$AGENT" = "both" ]; then
+  HOOKS_CMD="$PY_BIN $KIT/sbkit.py hooks install --agent claude"
+  if [ "$HOOKS" = "ask" ]; then
+    if [ -t 0 ]; then
+      read -r -p "Підключити хуки до ~/.claude/settings.json (з бекапом)? [Y/n] " ANS
+      case "${ANS:-Y}" in [nNнН]*) HOOKS="no" ;; *) HOOKS="yes" ;; esac
+    else
+      HOOKS="no"
+    fi
+  fi
+  if [ "$HOOKS" = "yes" ]; then
+    echo "── підключаю хуки Claude Code:"
+    $HOOKS_CMD
+  else
+    echo "── хуки Claude Code НЕ підключені (doctor покаже ready:false). Підключити:"
+    echo "   $HOOKS_CMD"
+  fi
+fi
 
 # 6. Перевірка.
 echo

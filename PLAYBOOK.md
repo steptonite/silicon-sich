@@ -108,7 +108,7 @@ Embed — обраним на Етапі 0 рушієм (Ollama = $0 прива�
 | pre_compact | PreCompact | фонова доіндексація сесії ПЕРЕД стисненням контексту |
 | session_start | SessionStart | інжект bridge.md («де спинились») + правила пам'яті |
 
-**Дії:** візьми блок із `scripts/hooks/settings-hooks.example.json`, заміни `<KIT>` на абсолютний шлях кита, злий у `~/.claude/settings.json` (НЕ затри чужі хуки). 🙋 Людина перезапускає сесію Claude Code.
+**Дії:** `python3 sbkit.py hooks install --agent claude` — підставляє шлях кита замість `<KIT>` з `scripts/hooks/settings-hooks.example.json`, зливає у `~/.claude/settings.json` (чужі хуки й ключі не чіпає, робить бекап, повторний запуск не дублює). Потім `python3 sbkit.py doctor` має показати `"hooks": {"claude": true}`. 🙋 Людина перезапускає сесію Claude Code.
 
 **✅ Перевірка:** нова сесія стартує з блоком «ВІДНОВЛЕННЯ СЕСІЇ»; повідомлення довше 30 символів приносить блок «🧠 АВТО-ПРИГАДУВАННЯ»; запис ноти без wikilinks повертає лінт-чекліст.
 

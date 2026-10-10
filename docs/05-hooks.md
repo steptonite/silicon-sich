@@ -4,8 +4,11 @@
 компакту. Хук харнеса виконується ЗАВЖДИ. Чотири хуки закривають чотири діри пам'яті.
 
 > Ці хуки — під **Claude Code**. Codex влаштований інакше (є подія PostCompact,
-> харнес віддає телеметрію) — його адаптер компакт-щита описано в
-> [18-codex-hooks](18-codex-hooks.md).
+> харнес віддає телеметрію); його адаптер у цій збірці не описаний.
+>
+> Підключити хуки до Claude Code: `python3 sbkit.py hooks install --agent claude`
+> (зливає блок із `scripts/hooks/settings-hooks.example.json` у `~/.claude/settings.json`,
+> не чіпаючи чужі хуки; перед зміною робить бекап; повторний запуск нічого не дублює).
 
 ## semantic_recall (UserPromptSubmit)
 
